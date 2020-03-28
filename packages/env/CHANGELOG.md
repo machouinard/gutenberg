@@ -2,6 +2,8 @@
 
 ### New Feature
 
+-   The `.wp-env.json` coniguration file now accepts "mu-plugins" sources.
+-   Themes, plugins, and mu-plugins directories may now be mounted directly as the corresponding wp-content subdirectory.
 -   URLs for ZIP files are now supported as core, plugin, and theme sources.
 -   The `.wp-env.json` coniguration file now accepts a `config` object for setting `wp-config.php` values.
 -   A `.wp-env.override.json` configuration file can now be used to override fields from `.wp-env.json`.
