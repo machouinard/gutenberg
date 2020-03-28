@@ -25,6 +25,7 @@ const buildDockerComposeConfig = require( './build-docker-compose-config' );
 
 /**
  * @typedef {import('./config').Config} Config
+ * @typedef {import('./config').Source} Source
  */
 
 module.exports = {
@@ -70,6 +71,20 @@ module.exports = {
 					.join( '\n' );
 		};
 
+		const downloader = ( source ) =>
+			downloadSource( source, {
+				onProgress: getProgressSetter( source.basename ),
+				spinner,
+				debug: config.debug,
+			} );
+
+		const getSourceDownloads = ( sources ) => {
+			if ( Array.isArray( sources ) ) {
+				return sources.map( ( source ) => downloader( source ) );
+			}
+			return [ downloader( sources ) ];
+		};
+
 		await Promise.all( [
 			// Preemptively start the database while we wait for sources to download.
 			dockerCompose.upOne( 'mysql', {
@@ -91,21 +106,9 @@ module.exports = {
 				}
 			} )(),
 
-			...config.pluginSources.map( ( source ) =>
-				downloadSource( source, {
-					onProgress: getProgressSetter( source.basename ),
-					spinner,
-					debug: config.debug,
-				} )
-			),
-
-			...config.themeSources.map( ( source ) =>
-				downloadSource( source, {
-					onProgress: getProgressSetter( source.basename ),
-					spinner,
-					debug: config.debug,
-				} )
-			),
+			...getSourceDownloads( config.pluginSources, downloader ),
+			...getSourceDownloads( config.muPluginsSources, downloader ),
+			...getSourceDownloads( config.themeSources, downloader ),
 		] );
 
 		spinner.text = 'Starting WordPress.';
@@ -477,22 +480,26 @@ async function configureWordPress( environment, config ) {
 	}
 
 	// Activate all plugins.
-	for ( const pluginSource of config.pluginSources ) {
-		await dockerCompose.run(
-			environment === 'development' ? 'cli' : 'tests-cli',
-			`wp plugin activate ${ pluginSource.basename }`,
-			options
-		);
+	if ( Array.isArray( config.pluginSources ) ) {
+		for ( const pluginSource of config.pluginSources ) {
+			await dockerCompose.run(
+				environment === 'development' ? 'cli' : 'tests-cli',
+				`wp plugin activate ${ pluginSource.basename }`,
+				options
+			);
+		}
 	}
 
 	// Activate the first theme.
-	const [ themeSource ] = config.themeSources;
-	if ( themeSource ) {
-		await dockerCompose.run(
-			environment === 'development' ? 'cli' : 'tests-cli',
-			`wp theme activate ${ themeSource.basename }`,
-			options
-		);
+	if ( Array.isArray( config.themeSources ) ) {
+		const [ themeSource ] = config.themeSources;
+		if ( themeSource ) {
+			await dockerCompose.run(
+				environment === 'development' ? 'cli' : 'tests-cli',
+				`wp theme activate ${ themeSource.basename }`,
+				options
+			);
+		}
 	}
 }
 
