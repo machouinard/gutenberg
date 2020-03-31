@@ -474,26 +474,32 @@ async function configureWordPress( environment, config ) {
 	}
 
 	// Activate all plugins.
-	if ( Array.isArray( config.pluginSources ) ) {
-		for ( const pluginSource of config.pluginSources ) {
-			await dockerCompose.run(
-				environment === 'development' ? 'cli' : 'tests-cli',
-				`wp plugin activate ${ pluginSource.basename }`,
-				options
-			);
-		}
+	await dockerCompose.run(
+		environment === 'development' ? 'cli' : 'tests-cli',
+		'wp plugin activate --all',
+		options
+	);
+
+	// Get the list of themes available to WordPress.
+	const themeOutput = await dockerCompose.run(
+		environment === 'development' ? 'cli' : 'tests-cli',
+		'wp theme list --fields=name',
+		options
+	);
+
+	// In case of an error getting the themes, do nothing.
+	if ( themeOutput.exitCode !== 0 ) {
+		return;
 	}
 
-	// Activate the first theme.
-	if ( Array.isArray( config.themeSources ) ) {
-		const [ themeSource ] = config.themeSources;
-		if ( themeSource ) {
-			await dockerCompose.run(
-				environment === 'development' ? 'cli' : 'tests-cli',
-				`wp theme activate ${ themeSource.basename }`,
-				options
-			);
-		}
+	// Index 0 contains "name" (the header of the output)
+	const firstTheme = themeOutput.out.split( '\n' )[ 1 ];
+	if ( firstTheme ) {
+		await dockerCompose.run(
+			environment === 'development' ? 'cli' : 'tests-cli',
+			`wp theme activate ${ firstTheme }`,
+			options
+		);
 	}
 }
 
