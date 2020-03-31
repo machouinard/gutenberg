@@ -8,6 +8,7 @@ const fs = require( 'fs' ).promises;
 const dockerCompose = require( 'docker-compose' );
 const yaml = require( 'js-yaml' );
 const inquirer = require( 'inquirer' );
+const { castArray } = require( 'lodash' );
 
 /**
  * Promisified dependencies
@@ -71,19 +72,12 @@ module.exports = {
 					.join( '\n' );
 		};
 
-		const downloader = ( source ) =>
+		const getDownloader = ( source ) =>
 			downloadSource( source, {
 				onProgress: getProgressSetter( source.basename ),
 				spinner,
 				debug: config.debug,
 			} );
-
-		const getSourceDownloads = ( sources ) => {
-			if ( Array.isArray( sources ) ) {
-				return sources.map( ( source ) => downloader( source ) );
-			}
-			return [ downloader( sources ) ];
-		};
 
 		await Promise.all( [
 			// Preemptively start the database while we wait for sources to download.
@@ -106,9 +100,9 @@ module.exports = {
 				}
 			} )(),
 
-			...getSourceDownloads( config.pluginSources, downloader ),
-			...getSourceDownloads( config.muPluginsSources, downloader ),
-			...getSourceDownloads( config.themeSources, downloader ),
+			...castArray( config.pluginSources ).map( getDownloader ),
+			...castArray( config.muPluginsSources ).map( getDownloader ),
+			...castArray( config.themeSources ).map( getDownloader ),
 		] );
 
 		spinner.text = 'Starting WordPress.';

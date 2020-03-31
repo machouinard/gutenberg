@@ -146,7 +146,9 @@ module.exports = {
 		}
 
 		// Throw an error if any of the sources are invalid.
-		validateSources( config, [ 'plugins', 'themes', 'mu-plugins' ] );
+		validateSources( config.plugins, 'plugins' );
+		validateSources( config.themes, 'plugins' );
+		validateSources( config[ 'mu-plugins' ], 'mu-plugins' );
 
 		if ( ! Number.isInteger( config.port ) ) {
 			throw new ValidationError(
@@ -205,30 +207,26 @@ module.exports = {
 };
 
 /**
- * Throws an error if any of the sources are invalid.
+ * Throws an error if the passed source value is invalid.
  *
- * @param {Object}   config       The parsed config object.
- * @param {string[]} sourceTypes  An array of source types to validate in the
- *                                config object. (e.g. the value contained in
- *                                config[ sourceTypes[ i ] ] will be validated.)
+ * @param {string|string[]} sources    An array of sources from the config object.
+ * @param {string}          sourceType The type of source. Used to inform the
+ *                                     user which config property needs fixed.
  */
-function validateSources( config, sourceTypes ) {
-	sourceTypes.forEach( ( sourceType ) => {
-		const sources = config[ sourceType ];
-		// A string is a valid source.
-		if ( typeof sources === 'string' ) {
-			return;
-		}
-		// Otherwise, source must be an array of strings.
-		if (
-			! Array.isArray( sources ) ||
-			sources.some( ( source ) => typeof source !== 'string' )
-		) {
-			throw new ValidationError(
-				`Invalid .wp-env.json: "${ sourceType }" must be a string or an array of strings.`
-			);
-		}
-	} );
+function validateSources( sources, sourceType ) {
+	// A string is a valid source.
+	if ( typeof sources === 'string' ) {
+		return;
+	}
+	// Otherwise, source must be an array of strings.
+	if (
+		! Array.isArray( sources ) ||
+		sources.some( ( source ) => typeof source !== 'string' )
+	) {
+		throw new ValidationError(
+			`Invalid .wp-env.json: "${ sourceType }" must be a string or an array of strings.`
+		);
+	}
 }
 
 /**
