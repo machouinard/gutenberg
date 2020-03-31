@@ -230,7 +230,7 @@ Several types of strings can be passed into the `core`, `plugins`, `mu-plugins`,
 
 Remote sources will be downloaded into a temporary directory located in `~/.wp-env`.
 
-For plugins, mu-plugins, and themes, you may also specify a single directory to map directly to the corresponding wp-content directory. To do so, specify a source string instead of an array of source strings. For example, if I set `"themes"` to `"../my-themes"`, then the `my-themes` directory will be mounted to the Docker instance directly as `wp-content/themes`. This might be useful if you are developing an entire directory of themes — you won't have to specify each theme one by one.
+For plugins, mu-plugins, and themes, you may also specify a single directory which maps directly to the corresponding wp-content directory. To do so, specify a source string instead of an array of source strings. For example, if you set `{ "themes": "../my-themes" }`, then the `my-themes` directory will be mounted to the Docker instance directly as `wp-content/themes`. This might be useful if you are developing an entire directory of themes — you won't have to specify each theme one by one.
 
 ## .wp-env.override.json
 
@@ -251,7 +251,7 @@ This is useful for plugin development.
 
 #### Latest production WordPress + a directory of themes
 
-This is useful if you need to mount many themes which all live in a single directory, or to override the entire wp-content/themes directory. (You may do the same thingfor plugins and mu-plugins.)
+This is useful if you need to mount many themes which all live in a single directory, or to override the entire wp-content/themes directory. (You may do the same for plugins and mu-plugins.)
 
 ```json
 {
@@ -264,7 +264,7 @@ This is useful if you need to mount many themes which all live in a single direc
 
 This is useful for plugin development when upstream Core changes need to be tested.
 
-It may also be useful if you have a directory of mu-plugins to mount as well.
+It may be useful if you have a directory of mu-plugins to mount as well.
 
 ```json
 {
