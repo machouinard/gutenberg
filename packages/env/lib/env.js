@@ -435,6 +435,8 @@ async function checkDatabaseConnection( { dockerComposeConfigPath, debug } ) {
  * @param {Config} config The wp-env config object.
  */
 async function configureWordPress( environment, config ) {
+	const containerName = environment === 'development' ? 'cli' : 'tests-cli';
+
 	const options = {
 		config: config.dockerComposeConfigPath,
 		commandOptions: [ '--rm' ],
@@ -445,7 +447,7 @@ async function configureWordPress( environment, config ) {
 
 	// Install WordPress.
 	await dockerCompose.run(
-		environment === 'development' ? 'cli' : 'tests-cli',
+		containerName,
 		[
 			'wp',
 			'core',
@@ -466,23 +468,19 @@ async function configureWordPress( environment, config ) {
 		if ( typeof value !== 'string' ) {
 			command.push( '--raw' );
 		}
-		await dockerCompose.run(
-			environment === 'development' ? 'cli' : 'tests-cli',
-			command,
-			options
-		);
+		await dockerCompose.run( containerName, command, options );
 	}
 
 	// Activate all plugins.
 	await dockerCompose.run(
-		environment === 'development' ? 'cli' : 'tests-cli',
+		containerName,
 		'wp plugin activate --all',
 		options
 	);
 
 	// Get the list of themes available to WordPress.
 	const themeOutput = await dockerCompose.run(
-		environment === 'development' ? 'cli' : 'tests-cli',
+		containerName,
 		'wp theme list --fields=name',
 		options
 	);
@@ -492,12 +490,12 @@ async function configureWordPress( environment, config ) {
 		return;
 	}
 
-	// Index 0 contains "name" (the header of the output)
-	const firstTheme = themeOutput.out.split( '\n' )[ 1 ];
+	// Index 0 contains "name" (the header of the output), so use next index.
+	const [ , firstTheme ] = themeOutput.out.split( '\n' );
 	if ( firstTheme ) {
 		await dockerCompose.run(
-			environment === 'development' ? 'cli' : 'tests-cli',
-			`wp theme activate ${ firstTheme }`,
+			containerName,
+			[ 'wp', 'theme', 'activate', firstTheme ],
 			options
 		);
 	}
