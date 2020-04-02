@@ -1,6 +1,12 @@
 'use strict';
 
 /**
+ * External dependencies
+ */
+const fs = require( 'fs' );
+const path = require( 'path' );
+
+/**
  * @typedef {import('./config').Config} Config
  * @typedef {import('./config').Source} Source
  */
