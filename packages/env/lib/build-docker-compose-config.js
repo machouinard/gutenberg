@@ -38,22 +38,17 @@ function getVolumeMounts( sources, wpContentRoot ) {
  * @return {Object} A docker-compose config object, ready to serialize into YAML.
  */
 module.exports = function buildDockerComposeConfig( config ) {
-	const pluginMounts = getVolumeMounts( config.pluginSources, 'plugins' );
-
-	const muPluginMounts = getVolumeMounts(
-		config.muPluginsSources,
-		'mu-plugins'
-	);
-
-	const themeMounts = getVolumeMounts( config.themeSources, 'themes' );
+	const customSources = [
+		...getVolumeMounts( config.pluginSources, 'plugins' ),
+		...getVolumeMounts( config.muPluginsSources, 'mu-plugins' ),
+		...getVolumeMounts( config.themeSources, 'themes' ),
+	];
 
 	const developmentMounts = [
 		`${
 			config.coreSource ? config.coreSource.path : 'wordpress'
 		}:/var/www/html`,
-		...pluginMounts,
-		...muPluginMounts,
-		...themeMounts,
+		...customSources,
 	];
 
 	let testsMounts;
@@ -96,15 +91,10 @@ module.exports = function buildDockerComposeConfig( config ) {
 						)
 				: [] ),
 
-			...pluginMounts,
-			...themeMounts,
+			...customSources,
 		];
 	} else {
-		testsMounts = [
-			'tests-wordpress:/var/www/html',
-			...pluginMounts,
-			...themeMounts,
-		];
+		testsMounts = [ 'tests-wordpress:/var/www/html', ...customSources ];
 	}
 
 	// Set the default ports based on the config values.
