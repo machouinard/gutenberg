@@ -10,7 +10,7 @@ import {
 	__experimentalBlockNavigationList,
 } from '@wordpress/block-editor';
 import { __ } from '@wordpress/i18n';
-import { Panel, PanelBody, Button } from '@wordpress/components';
+import { Button, Panel, PanelBody, Popover } from '@wordpress/components';
 
 /**
  * Internal dependencies
@@ -55,6 +55,7 @@ export default function MenuEditor( { menuId, blockEditorSettings } ) {
 					className="edit-navigation-menu-editor__panel"
 				>
 					<PanelBody title={ __( 'Navigation menu' ) }>
+						<Popover.Slot name="block-toolbar" />
 						<WritingFlow>
 							<ObserveTyping>
 								<BlockList />
